@@ -25,6 +25,9 @@ bool MySQL::Connect()
     if(p!=nullptr){
         //C和C++代码默认的编码字符ASCII,如果不设置，MYSQL获取的中文信息会乱码
         mysql_query(conn_m,"set name gbk");
+        LOG_INFO <<"Connect mysql success!";
+    }else{
+        LOG_INFO<<"Connect mysql failed!";
     }
     return p;
 }
@@ -45,4 +48,9 @@ MYSQL_RES *MySQL::Query(std::string sql)
         return nullptr;
     }
     return mysql_use_result(conn_m);
+}
+
+MYSQL *MySQL::GetConnection()
+{
+    return conn_m;
 }

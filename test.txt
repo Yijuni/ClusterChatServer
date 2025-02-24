@@ -1,0 +1,8 @@
+注册
+{"msgid":3,"name":"Marisa","password":"6666"}
+登录
+{"msgid":1,"id":2,"password":"6666"}
+{"msgid":1,"id":1,"password":"9999"}
+发送消息
+{"msgid":5,"id":2,"from":"Marisa","to":1,"msg":"baka!"}
+{"msgid":5,"id":1,"from":"Cirno","to":2,"msg":"you are ￥&……%"}

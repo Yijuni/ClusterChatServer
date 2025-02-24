@@ -20,6 +20,8 @@ public:
     bool Update(std::string sql);
     //查询操作
     MYSQL_RES *Query(std::string sql);
+    //获取连接
+    MYSQL* GetConnection();
 private:
     MYSQL* conn_m;
 };

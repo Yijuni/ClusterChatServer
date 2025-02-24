@@ -21,6 +21,7 @@ void ChatServer::onConnection(const TcpConnectionPtr & conn)
 {
     //用户断开连接
     if(!conn->connected()){
+        ChatService::GetInstance().ClientCloseException(conn);
         conn->shutdown();
     }
 }
