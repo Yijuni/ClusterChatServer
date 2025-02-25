@@ -8,7 +8,7 @@
 #include "json.hpp"
 #include "Public.h"
 #include "UserModel.h"
-
+#include "OfflineMessageModel.h"
 using namespace muduo::net;
 using namespace muduo;
 using json = nlohmann::json;
@@ -44,7 +44,7 @@ private:
     
     //数据操作类
     UserModel usermodel_m;
-
+    OfflineMessageMode offlinemsgmodel_m;
     //互斥锁保证UserConnMap的线程安全
     std::mutex connMutex_m;
 };

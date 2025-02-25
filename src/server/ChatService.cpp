@@ -31,9 +31,19 @@ void ChatService::Login(const TcpConnectionPtr &conn, json &js, Timestamp time)
         response["errno"] = 0;
         response["id"] = user.GetId();
         response["name"] = user.GetName();
+
         user.SetState("online");
         //更新数据库用户在线状态
         usermodel_m.UpdateState(user);
+
+        //查询用户是否有离线消息
+        std::vector<std::string> vec = offlinemsgmodel_m.Query(user.GetId());
+        if(!vec.empty()){
+            //获取离线消息
+            response["offlinemsg"] = vec;
+            //删除离线消息
+            offlinemsgmodel_m.Remove(user.GetId());
+        }
         conn->send(response.dump());
         return;
     }
@@ -115,6 +125,7 @@ void ChatService::OneChat(const TcpConnectionPtr &conn, json &js, Timestamp time
 
     }
     //不在线存储离线消息
+    offlinemsgmodel_m.Insert(toid,js.dump());
 }
 
 ChatService::ChatService()
