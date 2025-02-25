@@ -31,6 +31,8 @@ public:
     void ClientCloseException(const TcpConnectionPtr &conn);
     //一对一聊天服务
     void OneChat(const TcpConnectionPtr& conn,json& js,Timestamp time);
+    //服务器异常关闭，业务重置
+    void Reset();
     ChatService(const ChatService&) = delete;
     ChatService& operator=(const ChatService&) =delete;
 private:

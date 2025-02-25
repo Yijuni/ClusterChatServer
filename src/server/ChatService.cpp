@@ -128,6 +128,12 @@ void ChatService::OneChat(const TcpConnectionPtr &conn, json &js, Timestamp time
     offlinemsgmodel_m.Insert(toid,js.dump());
 }
 
+void ChatService::Reset()
+{
+    //把所有用户的状态online设置为offline
+    usermodel_m.ResetState();
+}
+
 ChatService::ChatService()
 {
     //注册消息以及对应的回调函数

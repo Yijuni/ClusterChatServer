@@ -58,3 +58,12 @@ bool UserModel::UpdateState(User &user)
     }
     return false;
 }
+
+void UserModel::ResetState()
+{
+    char sql[1024]="update User set state = 'offline' where state = 'online'";
+    MySQL db;
+    if(db.Connect()){
+        db.Update(sql);
+    }
+}
