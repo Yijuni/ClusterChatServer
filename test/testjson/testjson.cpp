@@ -62,6 +62,7 @@ int main(){
     cout<<msgjs["lingmeng"]<<endl;
     cout<<"<<<<<<<<<<<<<func2"<<endl;
     recvMsg = func2();
+    cout<<recvMsg<<endl;
     parse = json::parse(recvMsg);
     vector<int> vec = parse["list"];
     map<int,string> m = parse["name"];

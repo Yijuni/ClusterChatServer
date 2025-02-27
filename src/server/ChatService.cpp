@@ -1,4 +1,5 @@
 #include "ChatService.h"
+#include "map"
 ChatService &ChatService::GetInstance()
 {
     static ChatService service;
@@ -44,6 +45,21 @@ void ChatService::Login(const TcpConnectionPtr &conn, json &js, Timestamp time)
             //删除离线消息
             offlinemsgmodel_m.Remove(user.GetId());
         }
+
+        //查询登录用户的好友信息
+        std::vector<User> uservec = friendmode_m.Query(user.GetId());
+        if(!uservec.empty()){
+            std::vector<std::string> vec1;
+            for(auto& user1:uservec){
+                json jstmp;
+                jstmp["id"] = user1.GetId();
+                jstmp["name"] = user1.GetName();
+                jstmp["state"] = user1.GetState();
+                vec1.push_back(jstmp.dump());
+            } 
+            response["friends"] = vec1;
+        }
+
         conn->send(response.dump());
         return;
     }
@@ -128,6 +144,16 @@ void ChatService::OneChat(const TcpConnectionPtr &conn, json &js, Timestamp time
     offlinemsgmodel_m.Insert(toid,js.dump());
 }
 
+void ChatService::AddFriend(const TcpConnectionPtr &conn, json &js, Timestamp time)
+{
+    int userid = js["id"].get<int>();
+    int friendid = js["friendid"].get<int>();
+
+    //存储好友信息
+    friendmode_m.Insert(userid,friendid);
+    
+}
+
 void ChatService::Reset()
 {
     //把所有用户的状态online设置为offline
@@ -140,4 +166,5 @@ ChatService::ChatService()
     MsgHandlerMap_m.insert({MsgType::LOGIN_MSG,std::bind(&ChatService::Login,this,std::placeholders::_1,std::placeholders::_2,std::placeholders::_3)});
     MsgHandlerMap_m.insert({MsgType::REG_MSG,std::bind(&ChatService::Register,this,std::placeholders::_1,std::placeholders::_2,std::placeholders::_3)});
     MsgHandlerMap_m.insert({MsgType::ONT_CHAT_MSG,std::bind(&ChatService::OneChat,this,std::placeholders::_1,std::placeholders::_2,std::placeholders::_3)});
+    MsgHandlerMap_m.insert({MsgType::ADD_FRIEND_MSG,std::bind(&ChatService::AddFriend,this,std::placeholders::_1,std::placeholders::_2,std::placeholders::_3)});
 }

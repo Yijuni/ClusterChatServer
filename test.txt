@@ -6,3 +6,7 @@
 发送消息
 {"msgid":5,"id":2,"from":"Marisa","to":1,"msg":"baka!"}
 {"msgid":5,"id":1,"from":"Cirno","to":2,"msg":"you are ￥&……%"}
+添加好友
+{"msgid":6,"id":1,"friendid":2}
+Friend User联合查询
+select a.id,a.name,a.state from User a inner join Friend b on b.friendid = a.id where b.userid = userid;
