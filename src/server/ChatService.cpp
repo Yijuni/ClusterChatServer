@@ -160,6 +160,34 @@ void ChatService::Reset()
     usermodel_m.ResetState();
 }
 
+void ChatService::CreateGroup(const TcpConnectionPtr &conn, json &js, Timestamp time)
+{
+    int userid = js["userid"].get<int>();
+    std::string name = js["groupname"];
+    std::string desc = js["groupdesc"];
+    Group group(-1,name,desc);
+    if(groupmodel_m.CreateGroup(group)){
+        //数据库存储创建人的信息,相当于创建人加了群
+        groupmodel_m.AddGroup(userid,group.GetId(),"creator");
+    }
+}
+
+void ChatService::GroupChat(const TcpConnectionPtr &conn, json &js, Timestamp time)
+{
+    int userid = js["userid"].get<int>();
+    int groupid = js["groupid"].get<int>();
+    std::vector<int> groupuser = groupmodel_m.QueryGroupUsers(userid,groupid);
+    for(int& id:groupuser){
+        std::lock_guard<std::mutex> lock(connMutex_m);
+        auto iter = UserConnMap_m.find(id);
+        if(iter==UserConnMap_m.end()){
+            offlinemsgmodel_m.Insert(userid,js.dump());
+        }else{
+            iter->second->send(js.dump());
+        }
+    }
+}
+
 ChatService::ChatService()
 {
     //注册消息以及对应的回调函数
@@ -167,4 +195,6 @@ ChatService::ChatService()
     MsgHandlerMap_m.insert({MsgType::REG_MSG,std::bind(&ChatService::Register,this,std::placeholders::_1,std::placeholders::_2,std::placeholders::_3)});
     MsgHandlerMap_m.insert({MsgType::ONT_CHAT_MSG,std::bind(&ChatService::OneChat,this,std::placeholders::_1,std::placeholders::_2,std::placeholders::_3)});
     MsgHandlerMap_m.insert({MsgType::ADD_FRIEND_MSG,std::bind(&ChatService::AddFriend,this,std::placeholders::_1,std::placeholders::_2,std::placeholders::_3)});
+    MsgHandlerMap_m.insert({MsgType::CREATE_GROUP_MSG,std::bind(&ChatService::CreateGroup,this,std::placeholders::_1,std::placeholders::_2,std::placeholders::_3)});
+    MsgHandlerMap_m.insert({MsgType::GROUP_CHAT_MAG,std::bind(&ChatService::GroupChat,this,std::placeholders::_1,std::placeholders::_2,std::placeholders::_3)});
 }

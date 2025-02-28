@@ -10,6 +10,7 @@
 #include "UserModel.h"
 #include "OfflineMessageModel.h"
 #include "FriendModel.h"
+#include "GroupModel.h"
 using namespace muduo::net;
 using namespace muduo;
 using json = nlohmann::json;
@@ -36,6 +37,10 @@ public:
     void AddFriend(const TcpConnectionPtr& conn,json& js,Timestamp time);
     //服务器异常关闭，业务重置
     void Reset();
+    //创建群组
+    void CreateGroup(const TcpConnectionPtr& conn,json& js,Timestamp time);
+    //群聊服务
+    void GroupChat(const TcpConnectionPtr& conn,json& js,Timestamp time);
     ChatService(const ChatService&) = delete;
     ChatService& operator=(const ChatService&) =delete;
 private:
@@ -51,6 +56,7 @@ private:
     UserModel usermodel_m;
     OfflineMessageMode offlinemsgmodel_m;
     FriendModel friendmode_m;
+    GroupModel groupmodel_m;
     //互斥锁保证UserConnMap的线程安全
     std::mutex connMutex_m;
 };
