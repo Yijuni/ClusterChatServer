@@ -8,6 +8,7 @@ User::User(int id, std::string name, std::string password, std::string state)
     state_m = state;
 }
 
+
 void User::SetId(int id)
 {
     id_m = id;

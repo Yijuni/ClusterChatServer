@@ -8,7 +8,7 @@ ChatService &ChatService::GetInstance()
 
 void ChatService::Login(const TcpConnectionPtr &conn, json &js, Timestamp time)
 {
-    int id = js["id"].get<int>();
+    int id = js["userid"].get<int>();
     std::string pwd = js["password"];
 
     User user = usermodel_m.Query(id);
@@ -18,7 +18,7 @@ void ChatService::Login(const TcpConnectionPtr &conn, json &js, Timestamp time)
             //登陆成功
             response["msgid"] = LOGIN_MSG_ACK;
             response["errno"] = 2;
-            response["errmsg"] = "该账号已经登录，请重新输入新的账号！";
+            response["errmsg"] = "this number is used，please input again！";
             conn->send(response.dump());
             return;
         }
@@ -30,7 +30,7 @@ void ChatService::Login(const TcpConnectionPtr &conn, json &js, Timestamp time)
         }
         response["msgid"] = LOGIN_MSG_ACK;
         response["errno"] = 0;
-        response["id"] = user.GetId();
+        response["userid"] = user.GetId();
         response["name"] = user.GetName();
 
         user.SetState("online");
@@ -52,7 +52,7 @@ void ChatService::Login(const TcpConnectionPtr &conn, json &js, Timestamp time)
             std::vector<std::string> vec1;
             for(auto& user1:uservec){
                 json jstmp;
-                jstmp["id"] = user1.GetId();
+                jstmp["userid"] = user1.GetId();
                 jstmp["name"] = user1.GetName();
                 jstmp["state"] = user1.GetState();
                 vec1.push_back(jstmp.dump());
@@ -60,13 +60,37 @@ void ChatService::Login(const TcpConnectionPtr &conn, json &js, Timestamp time)
             response["friends"] = vec1;
         }
 
+        //查询登录用户群组信息
+        std::vector<Group> groups = groupmodel_m.QueryGroup(user.GetId());
+        if(!groups.empty()){
+            //"group"
+            std::vector<std::string> groupVec;
+            for(Group &group:groups){
+                json groupjs;
+                groupjs["groupid"] = group.GetId();
+                groupjs["groupname"] = group.GetName();
+                groupjs["groupdesc"] = group.GetDesc();
+                std::vector<std::string> uservec;
+                for(GroupUser &groupuser:group.GetUsers()){
+                    json userjs;
+                    userjs["userid"] = groupuser.GetId();
+                    userjs["username"] = groupuser.GetName();
+                    userjs["state"] = groupuser.GetState();
+                    userjs["role"] = groupuser.GetRole();
+                    uservec.push_back(userjs.dump());
+                }
+                groupjs["groupusers"] = uservec;
+                groupVec.push_back(groupjs.dump());
+            }
+            response["groups"] = groupVec;
+        }
         conn->send(response.dump());
         return;
     }
     //登录失败
     response["msgid"] = LOGIN_MSG_ACK;
     response["errno"] = 1;
-    response["errmsg"] = "登录失败!用户名或者密码错误！";
+    response["errmsg"] = "login failed!id or password error！";
     conn->send(response.dump());
 }
 
@@ -83,14 +107,14 @@ void ChatService::Register(const TcpConnectionPtr &conn, json &js, Timestamp tim
     if(state){
         //注册成功
         response["msgid"] = REG_MSG_ACK;
-        response["id"] = user.GetId();
+        response["userid"] = user.GetId();
         response["errno"] = 0;
         conn->send(response.dump());
         return;
     }
     response["msgid"] = REG_MSG_ACK;
     response["errno"] = 1;
-    response["errmsg"] = "注册失败！";
+    response["errmsg"] = "register failed";
     conn->send(response.dump());
 }
 

@@ -10,6 +10,16 @@ void Group::SetId(int id)
     id_m=id;
 }
 
+void Group::SetName(std::string name)
+{
+    name_m = name;
+}
+
+void Group::SetDesc(std::string desc)
+{
+    desc_m = desc;
+}
+
 int Group::GetId()
 {
     return id_m;

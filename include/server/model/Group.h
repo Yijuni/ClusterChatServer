@@ -7,6 +7,8 @@ class Group{
 public:
     Group(int id = -1,std::string name="",std::string desc="");
     void SetId(int id);
+    void SetName(std::string name);
+    void SetDesc(std::string desc);
     int GetId();
     std::string GetName();
     std::string GetDesc();
