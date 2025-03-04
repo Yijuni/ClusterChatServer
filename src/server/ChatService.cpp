@@ -152,7 +152,7 @@ void ChatService::ClientCloseException(const TcpConnectionPtr &conn)
 
 void ChatService::OneChat(const TcpConnectionPtr &conn, json &js, Timestamp time)
 {
-    int toid = js["to"].get<int>();
+    int toid = js["toid"].get<int>();
     {
         std::lock_guard<std::mutex> lock(connMutex_m);
         auto iter = UserConnMap_m.find(toid);
@@ -170,12 +170,12 @@ void ChatService::OneChat(const TcpConnectionPtr &conn, json &js, Timestamp time
 
 void ChatService::AddFriend(const TcpConnectionPtr &conn, json &js, Timestamp time)
 {
-    int userid = js["id"].get<int>();
+    int userid = js["userid"].get<int>();
     int friendid = js["friendid"].get<int>();
 
     //存储好友信息
     friendmode_m.Insert(userid,friendid);
-    
+    friendmode_m.Insert(friendid,userid);
 }
 
 void ChatService::Reset()
