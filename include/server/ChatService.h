@@ -41,6 +41,8 @@ public:
     void CreateGroup(const TcpConnectionPtr& conn,json& js,Timestamp time);
     //群聊服务
     void GroupChat(const TcpConnectionPtr& conn,json& js,Timestamp time);
+    //加群
+    void AddGroup(const TcpConnectionPtr& conn,json& js,Timestamp time);
     ChatService(const ChatService&) = delete;
     ChatService& operator=(const ChatService&) =delete;
 private:

@@ -24,6 +24,7 @@ bool GroupModel::AddGroup(int userid, int groupid, std::string role)
             return true;
         }
     }
+    
     return false;
 }
 
@@ -46,7 +47,7 @@ std::vector<Group> GroupModel::QueryGroup(int userid)
     }
     //查询群组用户信息
     for(Group& group : vec){
-        sprintf(sql,"select a.id,a.name,a.state,b.grouprole from User a inner join GroupUser on a.id=b.userid where b.groupid=%d",group.GetId());
+        sprintf(sql,"select a.id,a.name,a.state,b.grouprole from User a inner join GroupUser b on a.id=b.userid where b.groupid=%d",group.GetId());
         MYSQL_RES* res = db.Query(sql);
         if(res!=nullptr){
             MYSQL_ROW row;

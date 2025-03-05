@@ -86,15 +86,54 @@ void addfriend(int fd,std::string msg){
 }
 
 void creategroup(int fd,std::string msg){
-
+    int index=msg.find(":");
+    if(index==-1){
+        std::cerr<<"命令格式错误[create:groupname:groupdesc]"<<std::endl;
+        return;
+    }
+    json request;
+    request["msgid"] = CREATE_GROUP_MSG;
+    request["userid"] = currentUser.GetId();
+    request["groupname"] = msg.substr(0,index);
+    request["groupdesc"] = msg.substr(index+1);
+    std::string requeststr = request.dump();
+    int len = send(fd,requeststr.c_str(),strlen(requeststr.c_str()),0);
+    if(len==-1){
+        std::cerr<<"send request error,last request msg: "<<requeststr<<std::endl;
+    }
 }
 
 void addgroup(int fd,std::string msg){
-
+    json request;
+    request["msgid"] = ADD_GROUP_MSG;
+    request["userid"] = currentUser.GetId();
+    request["groupid"] = stoi(msg);
+    std::string requeststr = request.dump();
+    int len = send(fd,requeststr.c_str(),strlen(requeststr.c_str()),0);
+    if(len==-1){
+        std::cerr<<"send request error,last request msg: "<<requeststr<<std::endl;
+    }
 }
 
 void groupchat(int fd,std::string msg){
-
+    int index=msg.find(":");
+    if(index==-1){
+        std::cerr<<"命令格式错误[groupchat:groupid:message]"<<std::endl;
+        return;
+    }
+    int groupid = stoi(msg.substr(0,index));
+    json request;
+    request["msgid"] = GROUP_CHAT_MAG;
+    request["fromid"] = currentUser.GetId();
+    request["name"] = currentUser.GetName(); 
+    request["groupid"] = groupid;
+    request["msg"] = msg.substr(index+1);
+    request["time"] = getCurrentTime();
+    std::string requeststr = request.dump();
+    int len = send(fd,requeststr.c_str(),strlen(requeststr.c_str()),0);
+    if(len==-1){
+        std::cerr<<"send request error,last request msg: "<<requeststr<<std::endl;
+    }
 }
 
 void loginout(int fd,std::string msg){
@@ -134,22 +173,33 @@ void showCurUserData(){
     std::cout<<"=============================="<<std::endl;
 }
 
+void showMsg(json& msg){
+    if(msg["msgid"].get<int>()==ONT_CHAT_MSG){
+        std::cout<<msg["time"].get<std::string>()<<"["<<msg["fromid"]<<"]"<<msg["name"].get<std::string>()
+        <<" send : "<<msg["msg"].get<std::string>()<<std::endl;
+        return;
+    }
+    if(msg["msgid"].get<int>()==GROUP_CHAT_MAG){
+        std::cout<<"[group: "<<msg["groupid"].get<int>()<<" ]"<<msg["time"].get<std::string>()<<">>["<<msg["fromid"]<<"]"<<msg["name"].get<std::string>()
+        <<" send : "<<msg["msg"].get<std::string>()<<std::endl;
+        return;
+    }
+}
+
 //接受线程
 void readTaskHandler(int clientfd){
     for(;;){
-        char buffer[1024];
+        char buffer[1024]={0};
         int len = recv(clientfd,buffer,1024,0);
         if(len==0 || len==-1){
             close(clientfd);
             exit(-1);
         }
         json msg = json::parse(buffer);
-        if(msg["msgid"].get<int>()==ONT_CHAT_MSG){
-            std::cout<<msg["time"].get<std::string>()<<"["<<msg["fromid"]<<"]"<<msg["name"].get<std::string>()
-            <<" send : "<<msg["msg"].get<std::string>()<<std::endl;
-        }
+        showMsg(msg);
     }
 }
+
 
 
 //聊天页面程序
@@ -280,7 +330,7 @@ int main(int argc,char** argv){
                 }
             } 
 
-            if(response.contains("group")){
+            if(response.contains("groups")){
                 std::vector<std::string> groups = response["groups"];
                 for(std::string &groupstr:groups){
                     Group group;
@@ -308,8 +358,7 @@ int main(int argc,char** argv){
                 std::vector<std::string> vec = response["offlinemsg"];
                 for(std::string &str:vec){
                     json js = json::parse(str);
-                    std::cout<<js["time"].get<std::string>()<<"["<<js["fromid"].get<int>()
-                    <<"] "<<js["name"].get<std::string>()<<" send msg : "<<js["msg"].get<std::string>()<<std::endl;
+                    showMsg(js);
                 }
             }
             //登陆成功
