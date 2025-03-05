@@ -25,6 +25,8 @@ public:
     static ChatService& GetInstance();
     //登录业务
     void Login(const TcpConnectionPtr& conn,json& js,Timestamp time);
+    //处理登出业务
+    void LoginOut(const TcpConnectionPtr& conn,json& js,Timestamp time);
     //注册业务
     void Register(const TcpConnectionPtr& conn,json& js,Timestamp time);
     //获取不同消息对应的处理函数

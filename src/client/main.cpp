@@ -14,7 +14,8 @@
 #include "User.h"
 #include "Group.h"
 using json = nlohmann::json;
-
+//控制聊天页面是否继续显示
+bool UserIsOnline = false;
 //当前登录用户
 User currentUser;
 //当前用户好友
@@ -137,7 +138,16 @@ void groupchat(int fd,std::string msg){
 }
 
 void loginout(int fd,std::string msg){
-
+    json request;
+    request["msgid"] = LOGIN_OUT_MSG;
+    request["userid"] = currentUser.GetId();
+    std::string requeststr = request.dump();
+    int len = send(fd,requeststr.c_str(),strlen(requeststr.c_str()),0);
+    if(len==-1){
+        std::cerr<<"send request error,last request msg: "<<requeststr<<std::endl;
+        return;
+    } 
+    UserIsOnline = false;
 }
 //系统客户端命令处理函数
 std::unordered_map<std::string,std::function<void(int,std::string)>> commandHandler={
@@ -188,9 +198,9 @@ void showMsg(json& msg){
 
 //接受线程
 void readTaskHandler(int clientfd){
-    for(;;){
+    while(1){
         char buffer[1024]={0};
-        int len = recv(clientfd,buffer,1024,0);
+        int len = recv(clientfd,buffer,1024,0);//会阻塞
         if(len==0 || len==-1){
             close(clientfd);
             exit(-1);
@@ -206,7 +216,7 @@ void readTaskHandler(int clientfd){
 void mainMenu(int clientfd){
     help(0,"");
     char buffer[1024]={0};
-    for(;;){
+    while(UserIsOnline){
         std::cin.getline(buffer,1024);
         std::string origincmd(buffer);
         std::string cmd;
@@ -223,7 +233,7 @@ void mainMenu(int clientfd){
         }
         //获取命令处理函数进行处理
         iter->second(clientfd,origincmd.substr(index+1));
-
+        
     }
 }
 
@@ -322,6 +332,7 @@ int main(int argc,char** argv){
             currentUser.SetName(response["name"]);
             //记录当前好友信息
             if(response.contains("friends")){
+                curUserFriendList.clear();
                 std::vector<std::string> friends = response["friends"];
                 for(std::string &jsonstr:friends){
                     json js = json::parse(jsonstr);
@@ -331,6 +342,7 @@ int main(int argc,char** argv){
             } 
 
             if(response.contains("groups")){
+                curUserGroupList.clear();
                 std::vector<std::string> groups = response["groups"];
                 for(std::string &groupstr:groups){
                     Group group;
@@ -361,11 +373,17 @@ int main(int argc,char** argv){
                     showMsg(js);
                 }
             }
-            //登陆成功
-            std::thread readTask(readTaskHandler,clientfd);
-            readTask.detach();
-
-            //进入主界面聊天
+            //用户设为登录态
+            UserIsOnline=true;
+            //该线程只启动一次
+            static int threadnumber=0;
+            if(threadnumber==0)
+            {
+                std::thread readTask(readTaskHandler,clientfd);
+                readTask.detach();
+                threadnumber++;
+            }
+            ////登陆成功进入主界面聊天
             mainMenu(clientfd);
             break;
         }

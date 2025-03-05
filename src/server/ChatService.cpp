@@ -94,6 +94,7 @@ void ChatService::Login(const TcpConnectionPtr &conn, json &js, Timestamp time)
     conn->send(response.dump());
 }
 
+
 void ChatService::Register(const TcpConnectionPtr &conn, json &js, Timestamp time)
 {
     std::string name = js["name"];
@@ -149,7 +150,20 @@ void ChatService::ClientCloseException(const TcpConnectionPtr &conn)
         usermodel_m.UpdateState(user); 
     }
 }
-
+void ChatService::LoginOut(const TcpConnectionPtr &conn, json &js, Timestamp time)
+{
+    int userid = js["userid"].get<int>();
+    {
+        std::lock_guard<std::mutex> lock(connMutex_m);
+        auto iter = UserConnMap_m.find(userid);
+        if(iter!=UserConnMap_m.end()){
+            UserConnMap_m.erase(iter);
+        }
+    }
+    User user(userid);
+    user.SetState("offline");
+    usermodel_m.UpdateState(user);
+}
 void ChatService::OneChat(const TcpConnectionPtr &conn, json &js, Timestamp time)
 {
     int toid = js["toid"].get<int>();
@@ -232,5 +246,6 @@ ChatService::ChatService()
     MsgHandlerMap_m.insert({MsgType::CREATE_GROUP_MSG,std::bind(&ChatService::CreateGroup,this,std::placeholders::_1,std::placeholders::_2,std::placeholders::_3)});
     MsgHandlerMap_m.insert({MsgType::GROUP_CHAT_MAG,std::bind(&ChatService::GroupChat,this,std::placeholders::_1,std::placeholders::_2,std::placeholders::_3)});
     MsgHandlerMap_m.insert({MsgType::ADD_GROUP_MSG,std::bind(&ChatService::AddGroup,this,std::placeholders::_1,std::placeholders::_2,std::placeholders::_3)});
+    MsgHandlerMap_m.insert({MsgType::LOGIN_OUT_MSG,std::bind(&ChatService::LoginOut,this,std::placeholders::_1,std::placeholders::_2,std::placeholders::_3)});
 
 }
