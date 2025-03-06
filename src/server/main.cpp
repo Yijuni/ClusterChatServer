@@ -9,10 +9,12 @@ void resetHandler(int){
     exit(0);
 }
 
-int main(){
+int main(int argc,char** argv){
     signal(SIGINT,resetHandler);
     EventLoop loop;
-    InetAddress addr("127.0.0.1",6000);
+    char* ip = argv[1];
+    uint16_t port = atoi(argv[2]);
+    InetAddress addr(ip,port);
     ChatServer server(&loop,addr,"chatserver1");
     server.Start();
     loop.loop();
