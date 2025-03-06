@@ -205,6 +205,7 @@ void readTaskHandler(int clientfd){
             close(clientfd);
             exit(-1);
         }
+        
         json msg = json::parse(buffer);
         showMsg(msg);
     }

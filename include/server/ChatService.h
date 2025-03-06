@@ -11,6 +11,7 @@
 #include "OfflineMessageModel.h"
 #include "FriendModel.h"
 #include "GroupModel.h"
+#include "redis.h"
 using namespace muduo::net;
 using namespace muduo;
 using json = nlohmann::json;
@@ -45,6 +46,8 @@ public:
     void GroupChat(const TcpConnectionPtr& conn,json& js,Timestamp time);
     //加群
     void AddGroup(const TcpConnectionPtr& conn,json& js,Timestamp time);
+    //处理订阅的通道发来的消息 channel其实就是目标用户id
+    void HandleRedisSubscribeMessage(int channle,std::string message);
     ChatService(const ChatService&) = delete;
     ChatService& operator=(const ChatService&) =delete;
 private:
@@ -63,6 +66,8 @@ private:
     GroupModel groupmodel_m;
     //互斥锁保证UserConnMap的线程安全
     std::mutex connMutex_m;
+    //REDIS对象
+    Redis redis_m;
 };
 
 #endif

@@ -44,6 +44,7 @@ bool Redis::Publish(int channel, std::string message)
         return false;
     }
     freeReplyObject(reply);
+    std::cout<<"跨服务器发送消息成功 channel:"<< channel<<" "<<message<<std::endl;
     return true;
 }
 
@@ -64,6 +65,7 @@ bool Redis::Subscribe(int channel)
             return false;
         }
     }
+    std::cout<<"订阅成功"<<std::endl;
     return true;
 }
 
@@ -82,16 +84,19 @@ bool Redis::Unsubscribe(int channel)
             return false;
         }
     }
+    std::cout<<"取消订阅成功"<<std::endl;
     return true;
 }
 
 void Redis::Observer_channel_message()
 {
+    std::cout<<"channel回调"<<std::endl;
     redisReply* reply;
-    while(REDIS_OK==redisGetReply(subscribe_context_m,(void **)reply)){
+    while(REDIS_OK==redisGetReply(subscribe_context_m,(void **)&reply)){
         //收到的消息是带三个元素的数组
         if(reply !=nullptr && reply->element[2]!=nullptr && reply->element[2]->str !=nullptr){
             //给业务层上报消息 来自哪个通道的哪个消息
+            std::cout<<"成功收到其他服务器信息:"<<reply->element[2]->str<<std::endl;
             notify_message_handler_m(atoi(reply->element[1]->str),reply->element[2]->str);
         }
         freeReplyObject(reply);

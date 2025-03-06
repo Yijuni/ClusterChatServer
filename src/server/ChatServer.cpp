@@ -19,7 +19,7 @@ void ChatServer::Start()
 
 void ChatServer::onConnection(const TcpConnectionPtr & conn)
 {
-    //用户断开连接
+    //用户断开连接情况下进入该函数
     if(!conn->connected()){
         ChatService::GetInstance().ClientCloseException(conn);
         conn->shutdown();
