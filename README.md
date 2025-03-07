@@ -2,10 +2,13 @@
 ## 简介
 基于ngnix实现tcp连接负载均衡和muduo网络库的聊天服务器集群和客户端的源代码
 ## 使用
+### 手动编译
 cd build  
 rm -rf *  
 cmake ..  
 make  
+### 自动编译
+执行 ./autobuild.sh
 ## 配置
 ### nginx
 根据linux版本下载nginx源码进行编译，确保nginx服务能启动，并根据nginx-test文件夹下的文件对本地nginx.conf进行配置  
